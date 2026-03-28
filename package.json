@@ -1,0 +1,42 @@
+{
+  "name": "obsidian-to-blog",
+  "version": "1.0.0",
+  "description": "Generate static HTML sites from Obsidian vaults using the Obsidian CLI",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "obsidian-to-blog": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "obsidian",
+    "blog",
+    "static-site",
+    "markdown",
+    "html"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "cheerio": "^1.0.0",
+    "commander": "^13.1.0",
+    "fs-extra": "^11.3.0",
+    "ora": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.14.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2"
+  }
+}
