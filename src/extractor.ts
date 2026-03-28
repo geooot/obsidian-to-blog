@@ -37,8 +37,11 @@ export class HtmlExtractor {
     // Step 1: Open the file
     await this.client.openFile(filePath);
 
-    // Step 2: Switch to preview/reading mode
-    await this.client.runCommand("markdown:toggle-preview");
+    // Step 2: Switch to preview/reading mode (only if not already in preview)
+    const currentMode = await this.client.getViewMode();
+    if (currentMode !== "preview") {
+      await this.client.runCommand("markdown:toggle-preview");
+    }
 
     // Step 3: Wait for plugins to render
     await this.sleep(this.waitTime);

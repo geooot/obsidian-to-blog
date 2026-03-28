@@ -238,4 +238,17 @@ export class ObsidianClient {
   getVaultPath(): string {
     return this.vaultPath;
   }
+
+  /**
+   * Get the current view mode (source, preview, or none)
+   */
+  async getViewMode(): Promise<string> {
+    try {
+      const code = `(() => { const leaf = app.workspace.activeLeaf; if (!leaf || !leaf.view || !leaf.view.getState) return 'none'; const state = leaf.view.getState(); return state.mode || 'none'; })()`;
+      const result = await this.eval(code);
+      return result || "none";
+    } catch {
+      return "none";
+    }
+  }
 }
