@@ -35,7 +35,7 @@ export class HtmlGenerator {
     htmlPath = htmlPath
       .toLowerCase()
       .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9\-\/\.]/g, "");
+      .replace(/[^a-z0-9\-/.]/g, "");
 
     return htmlPath;
   }
@@ -43,14 +43,9 @@ export class HtmlGenerator {
   /**
    * Convert a vault file path to a relative URL for linking
    */
-  private toRelativeUrl(
-    targetPath: string,
-    fromPath: string
-  ): string {
+  private toRelativeUrl(targetPath: string, fromPath: string): string {
     const targetHtml = this.toHtmlPath(targetPath);
     const fromHtml = this.toHtmlPath(fromPath);
-
-    const targetDir = path.dirname(targetHtml);
     const fromDir = path.dirname(fromHtml);
 
     // Calculate relative path
@@ -98,10 +93,7 @@ ${content}
   /**
    * Process HTML content: rewrite links and collect images
    */
-  private processHtml(
-    content: ExtractedContent,
-    allFiles: Map<string, ExtractedContent>
-  ): string {
+  private processHtml(content: ExtractedContent, allFiles: Map<string, ExtractedContent>): string {
     // Use cheerio without adding html/head/body wrapper
     const $ = cheerio.load(content.html, { xml: false }, false);
 
@@ -283,7 +275,8 @@ ${content}
     $(".markdown-preview-pusher").remove();
 
     // Store frontmatter for later use
-    (content as ExtractedContent & { frontmatter?: Record<string, unknown> }).frontmatter = frontmatter;
+    (content as ExtractedContent & { frontmatter?: Record<string, unknown> }).frontmatter =
+      frontmatter;
 
     return $.html();
   }
@@ -316,10 +309,16 @@ ${content}
       const processedHtml = this.processHtml(content, contents);
 
       // Get frontmatter that was extracted during processing
-      const contentWithFrontmatter = content as ExtractedContent & { frontmatter?: Record<string, unknown> };
+      const contentWithFrontmatter = content as ExtractedContent & {
+        frontmatter?: Record<string, unknown>;
+      };
 
       // Wrap in full HTML document
-      const fullHtml = this.wrapHtml(content.title, processedHtml, contentWithFrontmatter.frontmatter);
+      const fullHtml = this.wrapHtml(
+        content.title,
+        processedHtml,
+        contentWithFrontmatter.frontmatter
+      );
 
       // Ensure directory exists
       await fs.ensureDir(path.dirname(outputPath));
@@ -362,10 +361,10 @@ ${content}
             cleanPath = match[1];
           }
         }
-        
+
         // Remove query strings
         cleanPath = cleanPath.split("?")[0];
-        
+
         // Get just the filename for searching
         const filename = path.basename(cleanPath);
 
@@ -376,12 +375,12 @@ ${content}
           path.join(vaultPath, imagePath.split("?")[0]),
           path.join(vaultPath, decodeURIComponent(cleanPath)),
         ];
-        
+
         // Add configured attachments folder if set
         if (this.attachmentsFolder) {
           possiblePaths.push(path.join(vaultPath, this.attachmentsFolder, filename));
         }
-        
+
         // Common attachment locations as fallback
         possiblePaths.push(
           path.join(vaultPath, "attachments", filename),
@@ -391,7 +390,7 @@ ${content}
           path.join(vaultPath, "images", filename),
           path.join(vaultPath, "Images", filename),
           // Root of vault
-          path.join(vaultPath, filename),
+          path.join(vaultPath, filename)
         );
 
         let sourcePath: string | null = null;

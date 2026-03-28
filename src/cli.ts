@@ -10,21 +10,12 @@ export function parseArgs(): CliOptions {
 
   program
     .name("obsidian-to-blog")
-    .description(
-      "Generate static HTML sites from Obsidian vaults using the Obsidian CLI",
-    )
+    .description("Generate static HTML sites from Obsidian vaults using the Obsidian CLI")
     .version("1.0.0")
-    .requiredOption(
-      "-e, --entrypoint <file>",
-      "Starting markdown file (relative to vault)",
-    )
+    .requiredOption("-e, --entrypoint <file>", "Starting markdown file (relative to vault)")
     .option("-o, --output <dir>", "Output directory", "./output")
     .option("-v, --vault <path>", "Path to Obsidian vault", process.cwd())
-    .option(
-      "-w, --wait-for-plugins <ms>",
-      "Milliseconds to wait for plugins to render",
-      "500",
-    )
+    .option("-w, --wait-for-plugins <ms>", "Milliseconds to wait for plugins to render", "500")
     .option("--verbose", "Enable verbose logging", false)
     .parse();
 

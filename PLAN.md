@@ -18,6 +18,7 @@ The Obsidian CLI operates as a "remote control" for a running Obsidian instance.
 The Obsidian CLI has a known race condition where async operations inside `obsidian eval` may not return results properly. When using `await` or `setTimeout` inside eval code, the CLI process may exit before stdout is flushed.
 
 **Our solution:** Instead of using a single async `eval` script, we use separate synchronous CLI commands:
+
 - `obsidian open` - Opens a file (synchronous)
 - `obsidian command` - Toggles preview mode (synchronous)
 - Node.js `setTimeout` - Handles the wait for plugins to render
@@ -92,28 +93,28 @@ Wraps the `obsidian` command-line tool:
 class ObsidianClient {
   // Check CLI availability and Obsidian is running
   checkConnection(): Promise<boolean>;
-  
+
   // Read file content
   read(file: string): Promise<string>;
-  
+
   // List files in vault
   listFiles(folder?: string): Promise<string[]>;
-  
+
   // Execute JavaScript in Obsidian's runtime (synchronous only!)
   eval(code: string): Promise<string>;
-  
+
   // Open a file in Obsidian
   openFile(file: string): Promise<void>;
-  
+
   // Run an Obsidian command by ID
   runCommand(commandId: string): Promise<void>;
-  
+
   // Get DOM element content using dev:dom
   getDom(selector: string, inner?: boolean): Promise<string>;
-  
+
   // Get the configured attachments folder path
   getAttachmentsFolder(): Promise<string>;
-  
+
   // Resolve a link path using Obsidian's resolver
   resolveLinkPath(linkPath: string, sourcePath: string): Promise<string | null>;
 }
@@ -128,16 +129,16 @@ class HtmlExtractor {
   async extract(filePath: string): Promise<ExtractedContent> {
     // Step 1: Open the file
     await this.client.openFile(filePath);
-    
+
     // Step 2: Switch to preview mode
     await this.client.runCommand("markdown:toggle-preview");
-    
+
     // Step 3: Wait for plugins to render (in Node.js, not Obsidian)
     await this.sleep(this.waitTime);
-    
+
     // Step 4: Extract HTML from preview container
     const html = await this.client.getDom(".markdown-preview-view", true);
-    
+
     // Step 5: Parse links and images from HTML using cheerio
     // ...
   }
@@ -152,13 +153,14 @@ BFS traversal of the link graph:
 class LinkCrawler {
   private visited: Set<string>;
   private queue: string[];
-  
+
   // Crawl from entrypoint, discovering all linked files
   async crawl(entrypoint: string): Promise<Map<string, ExtractedContent>>;
 }
 ```
 
 Two-pass link discovery:
+
 1. **Pass 1**: Extract rendered HTML and parse `<a href>` / `data-href` attributes (catches plugin-generated links like Dataview tables)
 2. **Pass 2**: Parse raw markdown for `[[wikilinks]]` and `[text](path)` links as backup
 
@@ -170,15 +172,19 @@ Generates standalone HTML pages:
 class HtmlGenerator {
   // Process HTML: rewrite links and image paths
   processHtml(content: ExtractedContent, allFiles: Map<string, ExtractedContent>): string;
-  
+
   // Wrap content in HTML document
   wrapHtml(title: string, content: string): string;
-  
+
   // Copy images to output/assets/, using vault's attachments folder config
   copyImages(vaultPath: string): Promise<void>;
-  
+
   // Generate all pages
-  generate(contents: Map<string, ExtractedContent>, vaultPath: string, attachmentsFolder: string): Promise<void>;
+  generate(
+    contents: Map<string, ExtractedContent>,
+    vaultPath: string,
+    attachmentsFolder: string
+  ): Promise<void>;
 }
 ```
 
@@ -199,13 +205,13 @@ obsidian-to-blog \
 
 ### Options
 
-| Flag | Short | Description | Default |
-|------|-------|-------------|---------|
-| `--entrypoint` | `-e` | Starting markdown file | (required) |
-| `--output` | `-o` | Output directory | `./dist` |
-| `--vault` | `-v` | Path to Obsidian vault | Current directory |
-| `--wait-for-plugins` | `-w` | MS to wait for plugin rendering | `500` |
-| `--verbose` | | Enable verbose logging | `false` |
+| Flag                 | Short | Description                     | Default           |
+| -------------------- | ----- | ------------------------------- | ----------------- |
+| `--entrypoint`       | `-e`  | Starting markdown file          | (required)        |
+| `--output`           | `-o`  | Output directory                | `./dist`          |
+| `--vault`            | `-v`  | Path to Obsidian vault          | Current directory |
+| `--wait-for-plugins` | `-w`  | MS to wait for plugin rendering | `500`             |
+| `--verbose`          |       | Enable verbose logging          | `false`           |
 
 ## Technical Details
 
@@ -228,6 +234,7 @@ obsidian dev:dom vault="MyVault" selector=".markdown-preview-view" inner
 ```
 
 This approach:
+
 - Avoids the async race condition in `obsidian eval`
 - Captures fully-rendered content including Dataview tables
 - Works reliably with all plugins
@@ -235,11 +242,13 @@ This approach:
 ### Image Handling
 
 Images in Obsidian can be referenced as:
+
 - `![[image.png]]` - Wikilink style
 - `![alt](image.png)` - Markdown style
 - `app://hash/path/to/image.png?timestamp` - Internal Obsidian URLs
 
 The generator:
+
 1. Queries the vault's configured attachments folder via `obsidian eval`
 2. Finds images in the rendered HTML (`<img src="...">` and `<span src="...">`)
 3. Resolves image paths (handles `app://` URLs, relative paths, attachments folder)
@@ -249,6 +258,7 @@ The generator:
 ### Link Rewriting
 
 Internal links are converted from Obsidian format to HTML paths:
+
 - `[[Note Name]]` → `note-name.html`
 - `[[Folder/Note]]` → `folder/note.html`
 - `data-href="Note Name"` → `href="note-name.html"`
@@ -257,6 +267,7 @@ Internal links are converted from Obsidian format to HTML paths:
 ### Vault Name Parsing
 
 The `obsidian vault` command returns tab-separated key-value pairs:
+
 ```
 name    MyVault
 path    /home/user/Documents/MyVault

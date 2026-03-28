@@ -64,7 +64,7 @@ export class ObsidianClient {
       // files	123
       // ...
       const vaultInfo = await this.exec("vault");
-      
+
       // Parse the name field from the output
       const lines = vaultInfo.split("\n");
       for (const line of lines) {
@@ -83,7 +83,7 @@ export class ObsidianClient {
       this.logger.verbose(`Connected to vault: ${this.vaultName || "(default)"}`);
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -142,11 +142,11 @@ export class ObsidianClient {
       .replace(/"/g, '\\"')
       .replace(/\$/g, "\\$")
       .replace(/`/g, "\\`")
-      .replace(/\n/g, " ")  // Replace newlines with spaces instead of \n
+      .replace(/\n/g, " ") // Replace newlines with spaces instead of \n
       .replace(/\s+/g, " "); // Collapse multiple spaces
 
     const result = await this.exec("eval", `code="${escapedCode}"`);
-    
+
     // The output from obsidian eval is prefixed with "=> "
     // Strip this prefix if present
     if (result.startsWith("=> ")) {
@@ -176,10 +176,7 @@ export class ObsidianClient {
    * Resolve a link path to its actual file path
    * Handles Obsidian's flexible linking (shortest path, etc.)
    */
-  async resolveLinkPath(
-    linkPath: string,
-    sourcePath: string
-  ): Promise<string | null> {
+  async resolveLinkPath(linkPath: string, sourcePath: string): Promise<string | null> {
     try {
       const code = `
         const dest = app.metadataCache.getFirstLinkpathDest('${linkPath.replace(/'/g, "\\'")}', '${sourcePath.replace(/'/g, "\\'")}');

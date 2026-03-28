@@ -24,11 +24,7 @@ export class LinkCrawler {
   /** All valid file paths in the vault (for link resolution) */
   private vaultFiles: Set<string> = new Set();
 
-  constructor(
-    client: ObsidianClient,
-    extractor: HtmlExtractor,
-    logger: Logger
-  ) {
+  constructor(client: ObsidianClient, extractor: HtmlExtractor, logger: Logger) {
     this.client = client;
     this.extractor = extractor;
     this.logger = logger;
@@ -53,15 +49,7 @@ export class LinkCrawler {
    * Check if a path looks like an image
    */
   private isImagePath(path: string): boolean {
-    const imageExtensions = [
-      ".png",
-      ".jpg",
-      ".jpeg",
-      ".gif",
-      ".webp",
-      ".svg",
-      ".bmp",
-    ];
+    const imageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp"];
     const lower = path.toLowerCase();
     return imageExtensions.some((ext) => lower.endsWith(ext));
   }
@@ -70,16 +58,9 @@ export class LinkCrawler {
    * Resolve a link to a full file path
    * Handles Obsidian's flexible linking (shortest unique path)
    */
-  private async resolveLink(
-    link: string,
-    sourcePath: string
-  ): Promise<string | null> {
+  private async resolveLink(link: string, sourcePath: string): Promise<string | null> {
     // Skip external links and anchors
-    if (
-      link.startsWith("http://") ||
-      link.startsWith("https://") ||
-      link.startsWith("#")
-    ) {
+    if (link.startsWith("http://") || link.startsWith("https://") || link.startsWith("#")) {
       return null;
     }
 

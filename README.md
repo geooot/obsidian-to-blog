@@ -62,13 +62,13 @@ obsidian-to-blog \
 
 ### Options
 
-| Option | Short | Description | Default |
-|--------|-------|-------------|---------|
-| `--entrypoint` | `-e` | Starting markdown file (required) | - |
-| `--output` | `-o` | Output directory | `./dist` |
-| `--vault` | `-v` | Path to Obsidian vault | Current directory |
-| `--wait-for-plugins` | `-w` | MS to wait for plugin rendering | `500` |
-| `--verbose` | | Enable verbose logging | `false` |
+| Option               | Short | Description                       | Default           |
+| -------------------- | ----- | --------------------------------- | ----------------- |
+| `--entrypoint`       | `-e`  | Starting markdown file (required) | -                 |
+| `--output`           | `-o`  | Output directory                  | `./dist`          |
+| `--vault`            | `-v`  | Path to Obsidian vault            | Current directory |
+| `--wait-for-plugins` | `-w`  | MS to wait for plugin rendering   | `500`             |
+| `--verbose`          |       | Enable verbose logging            | `false`           |
 
 ## How It Works
 
