@@ -8,8 +8,9 @@ Given an entrypoint markdown file, `obsidian-to-blog` traverses the link graph a
 
 - **Full plugin support**: Extracts rendered HTML after plugins (Dataview, etc.) have processed
 - **Link graph traversal**: Automatically discovers and exports all linked pages
-- **Image handling**: Copies referenced images to the output directory
-- **Clean output**: Generates minimal, unstyled HTML pages
+- **Image handling**: Copies referenced images to the output directory (respects vault's attachments folder config)
+- **Frontmatter extraction**: Stores YAML frontmatter as JSON in a `<script>` tag
+- **Clean output**: Generates minimal, unstyled HTML pages with Obsidian UI elements removed
 
 ## Requirements
 
@@ -78,15 +79,17 @@ obsidian-to-blog \
    - Parsed `[[wikilinks]]` and `[markdown](links)` from raw content
    - `<a href>` links extracted from rendered HTML (catches plugin-generated links)
 
-3. **Extract rendered HTML**: Uses `obsidian eval` to:
-   - Open each file in Obsidian
-   - Wait for plugins to render
-   - Extract the DOM innerHTML
+3. **Extract rendered HTML**: For each file:
+   - Opens the file with `obsidian open`
+   - Switches to preview mode if needed (checks current mode first)
+   - Waits for plugins to render
+   - Extracts the DOM HTML with `obsidian dev:dom`
 
 4. **Generate output**: Creates standalone HTML pages with:
-   - Rewritten internal links
-   - Copied image assets
-   - Minimal HTML wrapper
+   - Rewritten internal links (`.html` extensions, same-tab navigation)
+   - Copied image assets (from vault's configured attachments folder)
+   - Frontmatter stored as `<script type="application/json" id="frontmatter">`
+   - Removed Obsidian UI elements (collapse indicators, backlinks panel, metadata display)
 
 ## Output Structure
 
@@ -99,6 +102,18 @@ dist/
 └── assets/
     ├── image1.png
     └── image2.jpg
+```
+
+### Frontmatter
+
+If your notes have YAML frontmatter, it's extracted and embedded as JSON:
+
+```html
+<head>
+  <script type="application/json" id="frontmatter">
+    { "title": "My Post", "tags": ["blog", "tech"], "published": true }
+  </script>
+</head>
 ```
 
 ## Plugin Support
@@ -115,8 +130,8 @@ The extracted HTML includes whatever Obsidian displays in preview mode.
 
 The generated HTML is intentionally unstyled — just the content with Obsidian's CSS class names. You can:
 
-1. Add a `<link>` to your own stylesheet in a custom template
-2. Use Obsidian's CSS classes as hooks for styling
+1. Add a `<link>` to your own stylesheet
+2. Use Obsidian's CSS classes as hooks for styling (e.g., `.el-p`, `.el-h1`, `.dataview`)
 3. Post-process the HTML with your own tools
 
 ## Troubleshooting
@@ -139,8 +154,9 @@ The generated HTML is intentionally unstyled — just the content with Obsidian'
 
 ### Images not found
 
-- Check images exist in your vault
-- Embedded images from external URLs are not copied
+- Check images exist in your vault's attachments folder
+- The tool reads your vault's `attachmentFolderPath` config
+- External URL images are kept as-is (not downloaded)
 
 ## Development
 
@@ -156,6 +172,15 @@ pnpm dev
 
 # Type check
 pnpm typecheck
+
+# Lint
+pnpm lint
+
+# Format
+pnpm format
+
+# Run all checks
+pnpm check
 ```
 
 ## License
