@@ -22,8 +22,10 @@ export interface ExtractedContent {
   html: string;
   /** File title (basename without extension) */
   title: string;
-  /** Internal links found in rendered HTML */
+  /** Internal links found in rendered HTML (outgoing) */
   links: string[];
+  /** Backlinks - files that link to this file (incoming) */
+  backlinks: string[];
   /** Image references found in rendered HTML */
   images: string[];
   /** Original file path in vault */

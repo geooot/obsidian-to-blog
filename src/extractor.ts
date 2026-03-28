@@ -81,6 +81,7 @@ export class HtmlExtractor {
       html,
       title,
       links: [...new Set(links)],
+      backlinks: [], // Populated later by crawler using ObsidianClient.getBacklinks()
       images: [...new Set(images)],
       filePath,
     };

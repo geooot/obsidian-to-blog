@@ -68,13 +68,71 @@ export class HtmlGenerator {
   }
 
   /**
+   * Resolve link references to HTML paths, filtering to only include processed files
+   * @param links Array of link references (can be href values or file paths)
+   * @param processedFiles Set of all processed file paths
+   * @param filePathsByBasename Map for resolving basenames to full paths
+   * @returns Array of HTML paths for links that exist in processed files
+   */
+  private resolveLinksToHtmlPaths(
+    links: string[],
+    processedFiles: Set<string>,
+    filePathsByBasename: Map<string, string>
+  ): string[] {
+    const resolvedLinks: string[] = [];
+
+    for (const link of links) {
+      // Clean the link - remove anchors and normalize
+      const cleanLink = link.split("#")[0].replace(/\.md$/, "").toLowerCase();
+
+      // Try to find matching file path
+      let resolvedPath: string | undefined;
+
+      // Try exact match first (for backlinks which are already full paths)
+      const linkWithMd = link.endsWith(".md") ? link : `${link}.md`;
+      if (processedFiles.has(link)) {
+        resolvedPath = link;
+      } else if (processedFiles.has(linkWithMd)) {
+        resolvedPath = linkWithMd;
+      } else {
+        // Try by basename
+        resolvedPath = filePathsByBasename.get(cleanLink);
+      }
+
+      if (resolvedPath) {
+        resolvedLinks.push(this.toHtmlPath(resolvedPath));
+      }
+    }
+
+    return [...new Set(resolvedLinks)]; // Remove duplicates
+  }
+
+  /**
    * Wrap extracted content in a minimal HTML document
    */
-  private wrapHtml(title: string, content: string, frontmatter?: Record<string, unknown>): string {
+  private wrapHtml(
+    title: string,
+    content: string,
+    frontmatter?: Record<string, unknown>,
+    outgoingLinks?: string[],
+    backlinks?: string[]
+  ): string {
     // Build frontmatter script tag if we have properties
     let frontmatterScript = "";
     if (frontmatter && Object.keys(frontmatter).length > 0) {
       frontmatterScript = `\n  <script type="application/json" id="frontmatter">${JSON.stringify(frontmatter)}</script>`;
+    }
+
+    // Build outgoing links script tag
+    let outgoingLinksScript = "";
+    if (outgoingLinks && outgoingLinks.length > 0) {
+      outgoingLinksScript = `\n  <script type="application/json" id="outgoing-links">${JSON.stringify(outgoingLinks)}</script>`;
+    }
+
+    // Build backlinks script tag
+    let backlinksScript = "";
+    if (backlinks && backlinks.length > 0) {
+      backlinksScript = `\n  <script type="application/json" id="backlinks">${JSON.stringify(backlinks)}</script>`;
     }
 
     return `<!DOCTYPE html>
@@ -82,7 +140,7 @@ export class HtmlGenerator {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${this.escapeHtml(title)}</title>${frontmatterScript}
+  <title>${this.escapeHtml(title)}</title>${frontmatterScript}${outgoingLinksScript}${backlinksScript}
 </head>
 <body>
 ${content}
@@ -298,6 +356,15 @@ ${content}
     // Clear any previous images set
     this.imagesToCopy.clear();
 
+    // Build lookup maps for link resolution
+    const processedFiles = new Set(contents.keys());
+    const filePathsByBasename = new Map<string, string>();
+    for (const filePath of processedFiles) {
+      const basename = path.basename(filePath, ".md").toLowerCase();
+      filePathsByBasename.set(basename, filePath);
+      filePathsByBasename.set(filePath.toLowerCase(), filePath);
+    }
+
     // Process each file
     for (const [filePath, content] of contents) {
       const htmlPath = this.toHtmlPath(filePath);
@@ -313,11 +380,27 @@ ${content}
         frontmatter?: Record<string, unknown>;
       };
 
+      // Resolve outgoing links to HTML paths (only for processed files)
+      const outgoingLinks = this.resolveLinksToHtmlPaths(
+        content.links,
+        processedFiles,
+        filePathsByBasename
+      );
+
+      // Filter backlinks to only include processed files and convert to HTML paths
+      const backlinks = this.resolveLinksToHtmlPaths(
+        content.backlinks,
+        processedFiles,
+        filePathsByBasename
+      );
+
       // Wrap in full HTML document
       const fullHtml = this.wrapHtml(
         content.title,
         processedHtml,
-        contentWithFrontmatter.frontmatter
+        contentWithFrontmatter.frontmatter,
+        outgoingLinks,
+        backlinks
       );
 
       // Ensure directory exists

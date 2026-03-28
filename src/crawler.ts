@@ -103,6 +103,10 @@ export class LinkCrawler {
     try {
       // Extract rendered HTML
       const content = await this.extractor.extract(filePath);
+
+      // Fetch backlinks from Obsidian
+      content.backlinks = await this.client.getBacklinks(filePath);
+
       this.contents.set(filePath, content);
 
       // Resolve each link found in rendered HTML

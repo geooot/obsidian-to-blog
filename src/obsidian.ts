@@ -133,6 +133,22 @@ export class ObsidianClient {
   }
 
   /**
+   * Get backlinks to a file (files that link to this file)
+   */
+  async getBacklinks(file: string): Promise<string[]> {
+    try {
+      const cleanPath = file.replace(/\.md$/, "");
+      const output = await this.exec("backlinks", `file="${cleanPath}" format=paths`);
+      return output
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
    * Execute JavaScript in Obsidian's runtime
    */
   async eval(code: string): Promise<string> {
